@@ -7,7 +7,8 @@ public class Packet004Connect extends Packet {
 	}
 	
 	public byte[] getData() {
-		return ("004").getBytes();
+		char end = (char)255;
+		return ("004" + end).getBytes();
 	}
 
 	public boolean isValid() {

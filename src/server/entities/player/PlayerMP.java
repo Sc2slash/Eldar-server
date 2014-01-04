@@ -13,10 +13,9 @@ public class PlayerMP extends Player {
 	
 	public InetAddress player_ip;
 	public int port;
+	public int connection_id;
 	
-	private int num_failed = 0;
-	
-	public static PlayerMP newPlayerMP(String username, String password, InetAddress player_ip, int port) {
+	public static PlayerMP newPlayerMP(int connection_id, String username, String password, InetAddress player_ip, int port) {
 		if (!Validify.valid_username(username) || !Validify.valid_password(password)) {
 			return null;
 		}
@@ -24,13 +23,14 @@ public class PlayerMP extends Player {
 		if (!correct_password(username, password)) {
 			return null;
 		}
-		return new PlayerMP(username, password, player_ip, port);
+		return new PlayerMP(connection_id, username, password, player_ip, port);
 	}
 	
-	public PlayerMP(String username, String password, InetAddress player_ip, int port) {
+	public PlayerMP(int connection_id, String username, String password, InetAddress player_ip, int port) {
 		super(username);
 		this.player_ip = player_ip;
 		this.port = port;
+		this.connection_id = connection_id;
 	}
 	
 	//check that the username exists, and the password is correct

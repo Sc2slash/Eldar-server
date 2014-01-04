@@ -2,40 +2,33 @@ package server.packets;
 
 public class Packet001Login_confirm extends Packet {
 	
-	private String is_valid;
+	private int is_valid;
 	
 	public Packet001Login_confirm(byte[] data) {
 		super(001);
 		String data_parts[] = readData(data);
-		this.is_valid = data_parts[0];
+		this.is_valid = parseToInt(data_parts[0]);
 	}
 	
 	public Packet001Login_confirm(int is_valid) {
 		super(001);
-		this.is_valid = new String(Integer.toString(is_valid));
+		this.is_valid = is_valid;
 	}
 	
 	public byte[] getData() {
-		return ("001" + this.is_valid).getBytes();
+		char end = (char)255;
+		return ("001" + intToString(this.is_valid) + end).getBytes();
 	}
 	
 	public boolean isValid() {
-		if (is_valid.length() != 1)
-			return false;
-		int is_valid_int = Integer.parseInt(is_valid);
-		if (is_valid_int == 1 || is_valid_int == 0)
-			return true;
-		return false;
+		return (is_valid == 1 || is_valid == 0);
 	}
 	
 	public int get_is_valid() {
-		return Integer.parseInt(is_valid);
+		return is_valid;
 	}
 
 	public void change_validity() {
-		if (is_valid.equalsIgnoreCase("1"))
-			is_valid = is_valid.replace("1", "0");
-		else
-			is_valid = is_valid.replace("0", "1");
+		is_valid ^= 1;
 	}
 }

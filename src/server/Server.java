@@ -6,10 +6,11 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import server.entities.connected.Connected;
+import server.entities.disconnect.CatchDisconnected;
 import server.entities.player.PlayerMP;
 import server.game.Game;
 import server.packets.Packet;
@@ -17,6 +18,10 @@ import server.packets.Packet000Login;
 import server.packets.Packet.PacketTypes;
 import server.packets.Packet001Login_confirm;
 import server.packets.Packet003Ping;
+import server.packets.Packet004Connect;
+import server.packets.Packet005Connection_succeeded;
+import server.packets.Packet006Check_connection;
+
 
 public class Server {
 	
@@ -27,8 +32,11 @@ public class Server {
 	
 	private Game game;
 	private DatagramSocket socket;
+	CatchDisconnected c;
 	
-	private List<PlayerMP> connectedPlayers = new ArrayList<PlayerMP>();
+	public int MAX_NUM_PLAYERS = 100;
+	boolean used_id[] = new boolean[MAX_NUM_PLAYERS];
+	public Connected[] connectedPlayers = new Connected[MAX_NUM_PLAYERS];
 	
 	public Server(Game game) {
 		this.game = game;
@@ -40,6 +48,8 @@ public class Server {
 		System.out.println(socket.getInetAddress());
 		System.out.println(socket.getLocalAddress());
 		System.out.println(socket.getLocalPort());
+		c = new CatchDisconnected(this);
+		c.start();
 	}
 	public void run() {
 		while (true) {
@@ -67,9 +77,12 @@ public class Server {
 		{
 			Packet000Login packet = new Packet000Login(data);
 			Packet001Login_confirm response = new Packet001Login_confirm(0);
-			PlayerMP player = PlayerMP.newPlayerMP(packet.getUsername(), packet.getPassword(), client_ip, client_port);
-			if (player != null && !clientIsConnected(packet.getUsername(), client_ip, client_port)) {
-				this.connectedPlayers.add(player);
+			PlayerMP player = PlayerMP.newPlayerMP(packet.getConnectionID(), packet.getUsername(), packet.getPassword(), client_ip, client_port);
+			if (player != null) {
+				if (connectedPlayers[packet.getConnectionID()] == null) {
+					System.out.println("Hello");
+				}
+				connectedPlayers[packet.getConnectionID()].addPlayerMP(player);
 				System.out.println("["+ client_ip.getHostAddress()+":"+client_port+"] "+packet.getUsername()+" has connected");
 				response.change_validity();
 			}
@@ -83,6 +96,33 @@ public class Server {
 			Packet003Ping packet = new Packet003Ping();
 			sendData(packet.getData(), client_ip, client_port);
 		}
+			break;
+		case CONNECT:
+		{
+			Packet004Connect packet = new Packet004Connect();
+			if (!packet.isValid() || clientIsConnected(client_ip, client_port)) {
+				break;
+			}
+			//The client is now valid, and can connect
+			int client_id = -1;
+			for (int i = 0; i < MAX_NUM_PLAYERS; i++)
+				if (!used_id[i]) {
+					client_id = i;
+					connectedPlayers[i] = new Connected(i, client_ip, client_port);
+					used_id[i] = true;
+					break;
+				}
+			if (client_id == -1) {
+				//TODO --> Should send a packet saying the server is full, or create a queue.
+				break;
+			}
+			Packet005Connection_succeeded response = new Packet005Connection_succeeded(client_id);
+			sendData(response.getData(), client_ip, client_port);
+		}
+			break;
+		case CHECK_CONNECTION:
+			Packet006Check_connection packet = new Packet006Check_connection(data);
+			c.markReceived(packet.getIdentifierID());
 		}
 	}
 	
@@ -96,18 +136,29 @@ public class Server {
 	}
 	
 	public void sendDataToAllClients(byte[] data) {
-		for (PlayerMP p : connectedPlayers) {
-			sendData(data, p.player_ip, p.port);
+		for (Connected p : connectedPlayers) {
+			if (p != null) {
+				sendData(data, p.client_ip, p.client_port);
+			}
 		}
 	}
 	
-	public boolean clientIsConnected(String username, InetAddress client_ip, int port) {
-		for (PlayerMP p : connectedPlayers) {
-			if (p.username.equals(username) && p.player_ip == client_ip && p.port == port) {
+	public boolean clientIsConnected(InetAddress client_ip, int port) {
+		for (Connected p : connectedPlayers) {
+			if (p != null && p.client_ip == client_ip && p.client_port == port) {
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	public void removeConnectedClient(int identifier_id) {
+		System.out.println("Removing client with id:" + identifier_id);
+		//save data about the player
+		
+		//
+		used_id[identifier_id] = false;
+		connectedPlayers[identifier_id] = null;
 	}
 	
 	public static void main(String[] args) {

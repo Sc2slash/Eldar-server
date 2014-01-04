@@ -7,7 +7,8 @@ public class Packet003Ping extends Packet {
 	}
 
 	public byte[] getData() {
-		return ("003").getBytes();
+		char end = (char)255;
+		return ("003" + end).getBytes();
 	}
 	
 	public boolean isValid() {
