@@ -3,12 +3,11 @@ package server.packets;
 public class Packet003Ping extends Packet {
 	
 	public Packet003Ping() {
-		super(003);
+		super(3);
 	}
 
 	public byte[] getData() {
-		char end = (char)255;
-		return ("003" + end).getBytes();
+		return (intToString(3) + end).getBytes();
 	}
 	
 	public boolean isValid() {

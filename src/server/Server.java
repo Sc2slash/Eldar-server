@@ -67,8 +67,7 @@ public class Server {
  	}
 	
 	public void parsePacket(byte[] data, InetAddress client_ip, int client_port) {
-		String message = (new String(data)).trim();
-		PacketTypes type = Packet.lookupPacket(message.substring(0, 3));
+		PacketTypes type = Packet.getPrefix(data);
 		switch (type) {
 		default:
 		case INVALID:
@@ -79,9 +78,6 @@ public class Server {
 			Packet001Login_confirm response = new Packet001Login_confirm(0);
 			PlayerMP player = PlayerMP.newPlayerMP(packet.getConnectionID(), packet.getUsername(), packet.getPassword(), client_ip, client_port);
 			if (player != null) {
-				if (connectedPlayers[packet.getConnectionID()] == null) {
-					System.out.println("Hello");
-				}
 				connectedPlayers[packet.getConnectionID()].addPlayerMP(player);
 				System.out.println("["+ client_ip.getHostAddress()+":"+client_port+"] "+packet.getUsername()+" has connected");
 				response.change_validity();

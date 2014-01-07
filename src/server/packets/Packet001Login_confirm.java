@@ -5,19 +5,18 @@ public class Packet001Login_confirm extends Packet {
 	private int is_valid;
 	
 	public Packet001Login_confirm(byte[] data) {
-		super(001);
+		super(1);
 		String data_parts[] = readData(data);
 		this.is_valid = parseToInt(data_parts[0]);
 	}
 	
 	public Packet001Login_confirm(int is_valid) {
-		super(001);
+		super(1);
 		this.is_valid = is_valid;
 	}
 	
 	public byte[] getData() {
-		char end = (char)255;
-		return ("001" + intToString(this.is_valid) + end).getBytes();
+		return (intToString(1) + sep + intToString(this.is_valid) + end).getBytes();
 	}
 	
 	public boolean isValid() {
