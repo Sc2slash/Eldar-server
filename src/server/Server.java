@@ -9,6 +9,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
+import server.cmd.CMD;
 import server.entities.connected.Connected;
 import server.entities.disconnect.CatchDisconnected;
 import server.entities.player.PlayerMP;
@@ -25,7 +26,7 @@ import server.packets.Packet006Check_connection;
 
 public class Server {
 	
-	public String SERVER_ADDRESS = new String("localhost");
+	public String SERVER_ADDRESS = new String("25.155.82.122");
 
 	public int PACKET_SIZE = 1024;
 	public int SERVER_PORT = 8124;
@@ -50,6 +51,8 @@ public class Server {
 		System.out.println(socket.getLocalPort());
 		c = new CatchDisconnected(this);
 		c.start();
+		CMD cmd = new CMD(this);
+		cmd.start();
 	}
 	public void run() {
 		while (true) {
@@ -60,8 +63,8 @@ public class Server {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			System.out.println("CLIENT > " + new String(packet.getData()));
-			System.out.println("ClientAddress = " + packet.getSocketAddress());
+//			System.out.println("CLIENT > " + new String(packet.getData()));
+//			System.out.println("ClientAddress = " + packet.getSocketAddress());
 			parsePacket(packet.getData(), packet.getAddress(), packet.getPort());
 		}
  	}
