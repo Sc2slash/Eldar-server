@@ -1,6 +1,9 @@
 package server.game.levels;
 
+import server.utilities.Rectangle.Rect2f;
+
 public class Level {
-	int width, height;
+
+	Rect2f location;
 	
 }

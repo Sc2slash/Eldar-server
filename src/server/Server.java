@@ -7,13 +7,16 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.TreeSet;
 
 import server.cmd.CMD;
 import server.entities.connected.Connected;
 import server.entities.disconnect.CatchDisconnected;
 import server.entities.player.PlayerMP;
 import server.game.Game;
+import server.game.entities.Entity;
 import server.packets.Packet;
 import server.packets.Packet000Login;
 import server.packets.Packet.PacketTypes;
@@ -25,6 +28,14 @@ import server.packets.Packet006Check_connection;
 
 
 public class Server {
+	
+	//refers to the period of time between updating information about entities on the server
+	public final float SERVER_FRAME_TIME = 1/60;
+	//refers to the period of time between sending information about entities to the client 
+	public final float UPDATE_CLIENT_TIME = 1/30;
+	
+	public static HashMap<String, Entity> entities = new HashMap<String, Entity>();
+	public static TreeSet<Integer> used_entity_ids = new TreeSet<Integer>();
 	
 	public String SERVER_ADDRESS = new String("25.155.82.122");
 
@@ -80,10 +91,13 @@ public class Server {
 			Packet000Login packet = new Packet000Login(data);
 			Packet001Login_confirm response = new Packet001Login_confirm(0);
 			PlayerMP player = PlayerMP.newPlayerMP(packet.getConnectionID(), packet.getUsername(), packet.getPassword(), client_ip, client_port);
+			System.out.print("["+ client_ip.getHostAddress()+":"+client_port+"] ");
 			if (player != null) {
 				connectedPlayers[packet.getConnectionID()].addPlayerMP(player);
-				System.out.println("["+ client_ip.getHostAddress()+":"+client_port+"] "+packet.getUsername()+" has connected");
+				System.out.println(packet.getUsername()+" has connected");
 				response.change_validity();
+			} else {
+				System.out.println("Client("+packet.getConnectionID()+") has failed to login to " + packet.getUsername());
 			}
 			sendData(response.getData(), client_ip, client_port);
 		}
@@ -115,6 +129,7 @@ public class Server {
 				//TODO --> Should send a packet saying the server is full, or create a queue.
 				break;
 			}
+			System.out.println("["+ client_ip.getHostAddress()+":"+client_port+"] " + "has connected with id: " + client_id);
 			Packet005Connection_succeeded response = new Packet005Connection_succeeded(client_id);
 			sendData(response.getData(), client_ip, client_port);
 		}
