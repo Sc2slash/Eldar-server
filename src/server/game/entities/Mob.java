@@ -21,8 +21,8 @@ public class Mob extends Entity {
         }
 	}
 	
-	public Mob(String resources_id, int entity_code, int x_loc, int y_loc) {
-		super(resources_id, entity_code, new Rect2f(x_loc, y_loc, 0, 0));
+	public Mob(String resources_id, int entity_code, int x_loc, int y_loc, float speed) {
+		super(normEntityType("MOB"), resources_id, entity_code, new Rect2f(x_loc, y_loc, 0, 0), speed);
 		MobType mob_type = lookupMob(entity_code);
 		switch(mob_type) {
 		case TEST_MOB:
@@ -42,5 +42,17 @@ public class Mob extends Entity {
 			}
 		}
 		return MobType.INVALID;
+	}
+	
+	public float getDamage() {
+		return this.damage;
+	}
+	
+	public float getHealth() {
+		return this.health;
+	}
+	
+	public boolean isPassive() {
+		return this.isPassive();
 	}
 }

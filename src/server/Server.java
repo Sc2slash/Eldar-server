@@ -14,6 +14,7 @@ import java.util.TreeSet;
 import server.cmd.CMD;
 import server.entities.connected.Connected;
 import server.entities.disconnect.CatchDisconnected;
+import server.entities.player.InitialiseClient;
 import server.entities.player.PlayerMP;
 import server.game.Game;
 import server.game.entities.Entity;
@@ -25,28 +26,30 @@ import server.packets.Packet003Ping;
 import server.packets.Packet004Connect;
 import server.packets.Packet005Connection_succeeded;
 import server.packets.Packet006Check_connection;
+import server.packets.Packet010Start_movement;
 
 
 public class Server {
 	
 	//refers to the period of time between updating information about entities on the server
 	public final float SERVER_FRAME_TIME = 1/60;
+	
 	//refers to the period of time between sending information about entities to the client 
 	public final float UPDATE_CLIENT_TIME = 1/30;
 	
-	public static HashMap<String, Entity> entities = new HashMap<String, Entity>();
-	public static TreeSet<Integer> used_entity_ids = new TreeSet<Integer>();
+	public HashMap<Integer, Entity> moving_entities = new HashMap<Integer, Entity>();
 	
 	public String SERVER_ADDRESS = new String("25.155.82.122");
 
 	public int PACKET_SIZE = 1024;
 	public int SERVER_PORT = 8124;
 	
-	private Game game;
+	public Game game;
 	private DatagramSocket socket;
 	CatchDisconnected c;
+	UpdateClients update_clients;
 	
-	public int MAX_NUM_PLAYERS = 100;
+	public static final int MAX_NUM_PLAYERS = 100;
 	boolean used_id[] = new boolean[MAX_NUM_PLAYERS];
 	public Connected[] connectedPlayers = new Connected[MAX_NUM_PLAYERS];
 	
@@ -60,6 +63,8 @@ public class Server {
 		System.out.println(socket.getInetAddress());
 		System.out.println(socket.getLocalAddress());
 		System.out.println(socket.getLocalPort());
+		update_clients = new UpdateClients(this);
+		update_clients.start();
 		c = new CatchDisconnected(this);
 		c.start();
 		CMD cmd = new CMD(this);
@@ -93,6 +98,7 @@ public class Server {
 			PlayerMP player = PlayerMP.newPlayerMP(packet.getConnectionID(), packet.getUsername(), packet.getPassword(), client_ip, client_port);
 			System.out.print("["+ client_ip.getHostAddress()+":"+client_port+"] ");
 			if (player != null) {
+				game.addEntity(player);
 				connectedPlayers[packet.getConnectionID()].addPlayerMP(player);
 				System.out.println(packet.getUsername()+" has connected");
 				response.change_validity();
@@ -100,6 +106,10 @@ public class Server {
 				System.out.println("Client("+packet.getConnectionID()+") has failed to login to " + packet.getUsername());
 			}
 			sendData(response.getData(), client_ip, client_port);
+			if (player != null) {
+				InitialiseClient initialise = new InitialiseClient(this, player.connection_id);
+				initialise.initialise();
+			}
 		}
 			break;
 		case DISCONNECT:
@@ -135,9 +145,23 @@ public class Server {
 		}
 			break;
 		case CHECK_CONNECTION:
+		{
 			Packet006Check_connection packet = new Packet006Check_connection(data);
 			c.markReceived(packet.getIdentifierID());
+			break;
 		}
+		case START_MOVEMENT:
+		{
+			Packet010Start_movement packet = new Packet010Start_movement(data);
+			System.out.println("["+ client_ip.getHostAddress()+":"+client_port+"] (" + packet.getIdentifierID() + ") is moving");
+			Entity e = game.entities.get(connectedPlayers[packet.getIdentifierID()].playerMP.getID());
+			e.changeMovingDirection(packet.getDirection());
+			moving_entities.put(packet.getIdentifierID(), e);
+			System.out.println("x = " + e.getLocation().x + ", y = " + e.getLocation().y);
+			break;
+		}
+		}
+		
 	}
 	
 	public void sendData(byte[] data, InetAddress client_ip, int client_port) {

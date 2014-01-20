@@ -71,12 +71,12 @@ public class CMD extends Thread {
 			}
 				break;
 			//Update Entity
-			case 7:
-			{
-				Packet007New_entity packet = new Packet007New_entity();
-				server.sendData(packet.getData(), client_ip, client_port);
-			}
-			break;
+//			case 7:
+//			{
+//				Packet007New_entity packet = new Packet007New_entity();
+//				server.sendData(packet.getData(), client_ip, client_port);
+//			}
+//			break;
 			default:
 				System.out.println("Invalid packet id");
 				break;

@@ -8,7 +8,7 @@ public abstract class Packet {
 	protected final char end = (char) 127;
 	
 	public static enum PacketTypes {
-		INVALID(-1), LOGIN(0), LOGIN_CONFIRM(1), DISCONNECT(2), PING(3), CONNECT(4), CONNECTION_SUCCEEDED(5), CHECK_CONNECTION(6);
+		INVALID(-1), LOGIN(0), LOGIN_CONFIRM(1), DISCONNECT(2), PING(3), CONNECT(4), CONNECTION_SUCCEEDED(5), CHECK_CONNECTION(6), NEW_ENTITY(7), UPDATE_ENTITY(8), REMOVE_ENTITY(9), START_MOVEMENT(10);
 		
 		private int packetID;
 		private PacketTypes(int packetID) {

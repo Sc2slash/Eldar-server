@@ -1,24 +1,33 @@
 package server.packets;
 
-public class Packet007New_entity extends Packet{
+import server.entities.player.PlayerMP;
+import server.game.entities.Entity;
+import server.game.entities.Player;
 
-	String entity_prefix;
-	int entity_num, server_id;
-	boolean is_hostile;
-	int x_loc, y_loc;
+public class Packet007New_entity extends Packet {
 	
+	Entity entity;
 	
-	public Packet007New_entity(){
-		super(007);
-		
+	public Packet007New_entity(Entity entity) {
+		super(7);
+		this.entity = entity;
 	}
 	
 	public byte[] getData() {
-		//prefix, num, id_server, type (hostile, friendly), x, y, animation, name
-		return (intToString(7) + sep + intToString(1) + sep + intToString(0) + sep + intToString(0) + sep + intToString(200) + sep + intToString(300)+ sep + intToString(30) + sep + intToString(30) + sep + intToString(0)+ sep + intToString(2) + sep + intToString(0) + sep + intToString(0) + sep + intToString(200) + sep + intToString(400)+ sep + intToString(30) + sep + intToString(30) + sep + intToString(0)+end).getBytes();  
+//		if(entity instanceof NPC){
+//			return (intToString(7) + sep + intToString(0)+ sep + intToString(Integer.parseInt(entity.getServerID()))  + sep + intToString(entity.getBox().x) + sep +
+//					intToString(entity.getBox().y) + sep + intToString(entity.getBox().w) + sep + intToString(entity.getBox().h) + sep + end).getBytes();
+//		}
+		if(entity instanceof Player || entity instanceof PlayerMP){
+			return (intToString(7) + sep + intToString(1) + sep + intToString(entity.getID())  + sep + intToString((int)entity.getLocation().x) + sep +
+					intToString((int)entity.getLocation().y) + sep + intToString((int)entity.getLocation().w) + sep + intToString((int)entity.getLocation().h) + sep + end).getBytes();
+		}
+		return null;
 	}
-
+	
 	public boolean isValid() {
+		//TODO
 		return true;
 	}
+	
 }

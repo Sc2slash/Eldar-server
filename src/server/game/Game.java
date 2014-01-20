@@ -5,18 +5,23 @@ import java.util.TreeSet;
 
 import server.game.entities.Entity;
 import server.game.entities.Mob;
+import server.game.entities.Entity.EntityType;
 import server.utilities.CSVRead;
 import server.utilities.Rectangle.Rect2f;
 
 public class Game {
 	
-	public String mobsFile = "saved_data/mobs.csv";
+	public static final String mobsFile = "saved_data/mobs.csv";
+	public static final String playersFile = "saved_data/players.csv";
 	
-	public static HashMap<String, Entity> entities = new HashMap<String, Entity>();
+	public static HashMap<Integer, Entity> entities = new HashMap<Integer, Entity>();
 	public static TreeSet<Integer> used_entity_ids = new TreeSet<Integer>();
 	
 	public Game() {
-		//loadGame();
+		loadGame();
+		for (Entity e : entities.values()) {
+			System.out.println(e.getLocation().x + " " + e.getLocation().y);
+		}
 	}
 	
 	private void loadGame() {
@@ -27,15 +32,16 @@ public class Game {
 			int mob_id = Integer.parseInt(entity_data[1]);
 			int x_loc = Integer.parseInt(entity_data[2]);
 			int y_loc = Integer.parseInt(entity_data[3]);
-			Mob mob = new Mob(resources_id, mob_id, x_loc, y_loc);
-			//Entity e = new Entity(resources_id, mob_id, new Rect2f(x_loc, y_loc))
+			float speed = Float.parseFloat(entity_data[4]);
+			Mob mob = new Mob(resources_id, mob_id, x_loc, y_loc, speed);
+			addEntity(mob);
 		}
 	}
 	
 	public void addEntity(Entity e) {
 		int id = getNextEntityID();
 		e.changeID(id);
-		entities.put(Integer.toString(id), e);
+		entities.put(id, e);
 		used_entity_ids.add(id);
 	}
 	

@@ -9,7 +9,7 @@ public class Connected {
 	public int identifier_id;
 	public InetAddress client_ip;
 	public int client_port;
-	PlayerMP playerMP;
+	public PlayerMP playerMP;
 	
 	public int num_failed_ping = 0;
 	
